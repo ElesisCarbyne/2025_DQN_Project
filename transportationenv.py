@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import random
-from mapgeneration2 import MapGen
+from mapgeneration import MapGen
 
 class TransportationEnv:
     def __init__(self, height, width):
