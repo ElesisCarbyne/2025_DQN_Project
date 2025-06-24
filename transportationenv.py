@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import random
-from mapgeneration import MapGen
+from mapgeneration2 import MapGen
 
 class TransportationEnv:
     def __init__(self, height, width):
@@ -35,18 +35,20 @@ class TransportationEnv:
         return sum(map(lambda i, j: abs(i - j), self.src_coordinate, self.dest_coordinate))
     
     def reset(self, fixed=False):
-        if self.first == True or fixed == False: # 새로운 환경 생성 및 초기화
-            self.first = False
+        if not fixed: # 새로운 환경 생성 및 초기화
+            if self.first:
+                self.first = False
             map_gen = MapGen(self.map_height, self.map_width)
             self.tp_map, self.src_coordinate, self.dest_coordinate = map_gen.generate_map()
             self.cur_agent_pos = self.src_coordinate
             self.agent_step_remains = self.agent_step_upper_limit = int(self.mth_dist() * self.mth_factor)
-        elif self.first == False and fixed == True: # 이전에 생성한 환경 유지 및 초기화
+        else: # 이전에 생성한 환경 유지 및 재사용을 위한 초기화
+            if self.first:
+                return self.reset(fixed=False)
             self.tp_map[2][self.cur_agent_pos] = 1
             self.tp_map[2][self.src_coordinate] = 4
             self.cur_agent_pos = self.src_coordinate
             self.agent_step_remains = self.agent_step_upper_limit
-        
         return self.tp_map
 
     def step(self, action):
