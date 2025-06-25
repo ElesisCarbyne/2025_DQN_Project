@@ -4,7 +4,7 @@ import matplotlib.colors as mcolors
 import random
 from mapgeneration import MapGen
 
-class TransportationEnv:
+class PathFindEnv:
     def __init__(self, height, width):
         self.map_height = height
         self.map_width = width
@@ -118,7 +118,7 @@ class TransportationEnv:
 if __name__ == "__main__":
     plt.ion()
     
-    env = TransportationEnv(height=32, width=32)
+    env = PathFindEnv(height=32, width=32)
     state = env.reset()
 
     fig, ax = plt.subplots(figsize=(6, 6))
