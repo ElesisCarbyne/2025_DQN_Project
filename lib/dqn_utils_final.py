@@ -29,9 +29,9 @@ class ReplayMemory:
         self.buffer.clear()
 
 class DQN:
-    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=5000, max_norm=5.0):
+    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=5000, weight_decay=0.1, max_norm=5.0):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.input_size = input_size
+        self.input_size = input_size # 모델 입력 크기
         self.q_net = None # 주 신경망
         
         if train:
@@ -54,8 +54,9 @@ class DQN:
             # 손실 함수, 옵티마이저, 그 외 학습 안정성 관련 변수
             self.loss_fn = nn.SmoothL1Loss()
             self.optimizer = None
-            self.scaler = torch.GradScaler(self.device) # AMP를 위한 스케일러
-            self.max_norm = max_norm # gradient clipping을 위한 하이퍼파리미터
+            self.weight_decay = weight_decay # L2 Regularization 하이퍼파라미터
+            self.scaler = torch.GradScaler(self.device) # AMP 스케일러
+            self.max_norm = max_norm # gradient clipping 하이퍼파리미터
 
     def clear_screen(self):
         """ 터미널 출력 지우기 """
@@ -92,7 +93,7 @@ class DQN:
         if len(self.replay_memory) < self.batch_size:
             return 0.0
         
-        self.q_net.train()
+        self.q_net.train() # 학습 모드
         
         # Replay Buffer에서 batch_size 만큼의 데이터를 무작위로 추출한다
         transition_set = self.replay_memory.sample(self.batch_size)
@@ -139,25 +140,23 @@ class DQN:
         
         env_creation_cnt = 0 # 환경 생성 횟수
 
-        # 저장 데이터 불러오기
+        # 이전 환경 정보 불러오기
         if checkpoint is not None:
             _, env_config = self.load(checkpoint)
-
-            # 학습 환경 정보 불러오기
             max_env_creation_cnt, env_creation_cnt, max_ep_win_rate_in_env = env_config
         
-        # 에피소드 승리 횟수가 max_ep_win_in_env에 이를 때 때까지 환경의 학습을 수행한다
+        # 에피소드 승리 횟수가 max_ep_win_in_env에 이를 때 때까지 환경 생성 및 학습을 수행한다
         while env_creation_cnt != max_env_creation_cnt:
             # 주 신경망 생성
             self.q_net = Agent(input_size=self.input_size).to(self.device)
 
             # 목표 신경망 생성
             self.target_net = Agent(input_size=self.input_size).to(self.device)
-            self.target_net.load_state_dict(self.q_net.state_dict()) # 목표 신경망 생성 및 주 신경망의 파라미터를 목표 신경망에 불러오기
-            self.target_net.eval()
+            self.target_net.load_state_dict(self.q_net.state_dict()) # 주 신경망의 파라미터를 목표 신경망에 불러오기
+            self.target_net.eval() # 목표 신경망은 학습을 수행하지 않는다
 
             # 옵티마이저 설정
-            self.optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr)
+            self.optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
             
             # 학습을 위한 변수들
             cu_ep_step = 0 # 현재 환경에서 수행된 모든 에피소드들의 스텝 누적합(누적 스텝)
@@ -234,27 +233,26 @@ class DQN:
                         ax1 = fig.add_subplot(121)
                         ax1.plot(avg_total_ep_reward_in_env)
                         ax1.set_title("Average of total episode reward")
-                        ax1.set_xticks(np.arange(0, recent, 1000))
+                        ax1.set_xticks(np.arange(0, recent+2000, 1000))
                         ax1.set_xlabel("Episode")
                         ax1.set_ylabel("Average reward")
                         
                         ax2 = fig.add_subplot(122)
                         ax2.plot(avg_total_ep_loss_in_env)
                         ax2.set_title("Average of total episode loss")
-                        ax2.set_xticks(np.arange(0, recent, 1000))
+                        ax2.set_xticks(np.arange(0, recent+2000, 1000))
                         ax2.set_xlabel("Episode")
                         ax2.set_ylabel("Average loss")
     
                         plt.tight_layout()
                         plt.show()
 
-                    # 현재 환경에서 에피소드 성공률이 목표 성공률 이상인 경우
+                    # 현재 환경에서의 에피소드 성공률이 목표 성공률에 도달한 경우
                     if ep_win_rate_in_env >= max_ep_win_rate_in_env:
-                        # 학습에 성공한 경우
+                        # 학습 검증
                         if self.validation(env):
                             self.save(max_env_creation_cnt, env_creation_cnt, max_ep_win_rate_in_env, ep_win_in_env, ep_cnt_in_env, env.get_env_info()) # 에이전트 체크포인트 저장 및 학습이 완료된 환경 정보 저장
-                        # 현재 환경에서의 학습을 종료하고 다음 환경으로 넘어간다
-                        break
+                        break # 현재 환경에서의 학습을 종료하고 다음 환경으로 넘어간다
                     # 현재 환경에서 에피소드 성공률이 목표 에피소드 성공률에 도달하지 못한 경우
                     else:
                         # 목표 에피소드 성공률에 도달할 때까지 현재 환경에서의 학습을 반복한다
@@ -272,10 +270,11 @@ class DQN:
     def validation(self, env):
         """ 에이전트 학습 검증 """
         
-        self.q_net.eval()
+        self.q_net.eval() # 평가 모드
         cur_ep_step = 0
         cur_state = env.reset(fixed=True)
-        
+
+        # 학습 검증
         while True:
             cur_ep_step += 1
             with torch.no_grad():
@@ -287,8 +286,15 @@ class DQN:
             if terminated:
                 return passed
 
-            cur_state = next_state
+            cur_state = next_state # 다음 상태를 현재 상태로 설정
 
+    def display(self, env, verbose):
+        """ 환경의 현재 상태를 시각화한다 """
+        
+        if verbose:
+            fig, ax = plt.subplots(figsize=(6, 6))
+            env.normal_view_render(ax)
+    
     def inference(self, env, init_state, checkpoint, verbose=False):
         """ 학습된 에이전트로 특정 환경에서 에피소드를 수행하고 그 결과를 리플레이 형태로 반환한다 """
 
@@ -296,16 +302,14 @@ class DQN:
 
         self.q_net = Agent(input_size=self.input_size).to(self.device) # 주 신경망 생성
         self.q_net.load_state_dict(torch.load(checkpoint_abs_path, weights_only=True)) # 에이전트 체크포인트 불러오기
-        self.q_net.eval()
+        self.q_net.eval() # 평가 모드
         
         cur_ep_step = 0
         cur_state = init_state.copy()
         ep_replay = np.expand_dims(cur_state, axis=0) # 에피소드 내 모든 상태 기록
 
         # 현재 상태 출력
-        if verbose:
-            fig, ax = plt.subplots(figsize=(6, 6))
-            env.normal_view_render(ax)
+        self.display(env, verbose)
 
         # 에피소드 수행
         while True:
@@ -316,9 +320,7 @@ class DQN:
             next_state, _, terminated, passed, _ = env.step(action, cur_ep_step)
 
             # 현재 상태 출력
-            if verbose:
-                fig, ax = plt.subplots(figsize=(6, 6))
-                env.normal_view_render(ax)
+            self.display(env, verbose)
 
             # 에피소드 진행 과정 기록
             ep_replay = np.concatenate((ep_replay, np.expand_dims(next_state, axis=0)), axis=0)
@@ -328,7 +330,7 @@ class DQN:
                 print(f"<<< Win >>>") if passed else print(f"<<< Lose >>>")
                 break
             
-            cur_state = next_state
+            cur_state = next_state # 다음 상태를 현재 상태로 설정
 
         print("===== Inference Done =====")
         return ep_replay
