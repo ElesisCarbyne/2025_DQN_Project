@@ -29,7 +29,7 @@ class ReplayMemory:
         self.buffer.clear()
 
 class DQN:
-    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=5000, weight_decay=0.1, max_norm=5.0):
+    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=3000, weight_decay=0.01, max_norm=5.0):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.input_size = input_size # 모델 입력 크기
         self.q_net = None # 주 신경망
@@ -67,6 +67,13 @@ class DQN:
         # Linux or macOS
         else:
             os.system("clear")
+
+    def display(self, env, verbose):
+        """ 환경의 현재 상태를 시각화한다 """
+        
+        if verbose:
+            fig, ax = plt.subplots(figsize=(6, 6))
+            env.normal_view_render(ax)
         
     def eps_decay(self, ep_cnt_in_env):
         """ 입실론 쇠퇴(decay) 구현 """
@@ -135,7 +142,7 @@ class DQN:
 
         return round(loss.item(), 3)
     
-    def train(self, env, checkpoint=None, max_env_creation_cnt=30, max_ep_win_rate_in_env=90, recent=7000, jupyter=True, verbose=True):
+    def train(self, env, checkpoint=None, max_env_creation_cnt=30, max_ep_win_rate_in_env=90, recent=5000, jupyter=True, verbose=True):
         """ DQN 에이전트의 학습을 수행한다 """
         
         env_creation_cnt = 0 # 환경 생성 횟수
@@ -233,14 +240,14 @@ class DQN:
                         ax1 = fig.add_subplot(121)
                         ax1.plot(avg_total_ep_reward_in_env)
                         ax1.set_title("Average of total episode reward")
-                        ax1.set_xticks(np.arange(0, recent+2000, 1000))
+                        ax1.set_xticks(np.arange(0, ep_cnt_in_env // 1000 * 1000 + 2000, 1000))
                         ax1.set_xlabel("Episode")
                         ax1.set_ylabel("Average reward")
                         
                         ax2 = fig.add_subplot(122)
                         ax2.plot(avg_total_ep_loss_in_env)
                         ax2.set_title("Average of total episode loss")
-                        ax2.set_xticks(np.arange(0, recent+2000, 1000))
+                        ax2.set_xticks(np.arange(0, ep_cnt_in_env // 1000 * 1000 + 2000, 1000))
                         ax2.set_xlabel("Episode")
                         ax2.set_ylabel("Average loss")
     
@@ -249,17 +256,26 @@ class DQN:
 
                     # 현재 환경에서의 에피소드 성공률이 목표 성공률에 도달한 경우
                     if ep_win_rate_in_env >= max_ep_win_rate_in_env:
-                        # 학습 검증
+                        # 학습 검증에 성공한 경우
                         if self.validation(env):
                             self.save(max_env_creation_cnt, env_creation_cnt, max_ep_win_rate_in_env, ep_win_in_env, ep_cnt_in_env, env.get_env_info()) # 에이전트 체크포인트 저장 및 학습이 완료된 환경 정보 저장
-                        break # 현재 환경에서의 학습을 종료하고 다음 환경으로 넘어간다
-                    # 현재 환경에서 에피소드 성공률이 목표 에피소드 성공률에 도달하지 못한 경우
+                            break
+                        # 학습 검증에 실패한 경우 and 현재 환경에서의 에피소드 성공률이 (max_ep_win_rate_in_env + 5)%를 넘어서는 경우
+                        elif ep_win_rate_in_env >= (max_ep_win_rate_in_env + 5):
+                            # 현재 N번째 환경을 다시 생성하여 처음부터 다시 학습을 수행한다
+                            env_creation_cnt -= 1
+                            break
+                        # 학습 검증에 실패한 경우
+                        else:
+                            # 학습 검증에 성공할 때 까지 에피소드를 반복 수행한다
+                            continue
+                    # 현재 환경에서의 에피소드 성공률이 목표 성공률에 도달하지 못한 경우
                     else:
                         # 목표 에피소드 성공률에 도달할 때까지 현재 환경에서의 학습을 반복한다
                         cur_ep_step = 0
                         eps_threshold = self.eps_decay(ep_cnt_in_env)
-                        # 현재 환경을 재초기화하고 에피소드를 다시 수행한다
-                        cur_state = env.reset(fixed=True) + np.random.rand(3, env.map_height, env.map_width) / 10.0
+                        # 현재 환경을 초기화하고 에피소드를 다시 수행한다
+                        cur_state = env.reset(fixed=True) + np.random.rand(3, env.map_height, env.map_width) / 10.0 # "np.random.rand(3, env.map_height, env.map_width) / 100"은 학습 안정성을 위해 추가하는 잡음이다
                         continue
         
                 cur_state = next_state # 다음 상태를 현재 상태로 설정
@@ -287,13 +303,6 @@ class DQN:
                 return passed
 
             cur_state = next_state # 다음 상태를 현재 상태로 설정
-
-    def display(self, env, verbose):
-        """ 환경의 현재 상태를 시각화한다 """
-        
-        if verbose:
-            fig, ax = plt.subplots(figsize=(6, 6))
-            env.normal_view_render(ax)
     
     def inference(self, env, init_state, checkpoint, verbose=False):
         """ 학습된 에이전트로 특정 환경에서 에피소드를 수행하고 그 결과를 리플레이 형태로 반환한다 """
