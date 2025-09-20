@@ -42,11 +42,6 @@ train_example.ipynb # 에이전트 학습 예시
 - **Gradient clipping**
 - **L2 Regularization**
 
-# 학습 목표
-전체 지역을 구성하는 부분 지역 최적화 경로 탐색 에이전트를 구현합니다.
-### [상세 설명]
-환경을 구성하는 맵의 크기가 커질수록 계산량 급증으로 인해 모델 학습 속도가 저하되는 것에 착안하여, 전체 지역을 부분 지역으로 분할하고, 해당 부분 지역 내에서의 경로 탐색에 최적화된 에이전트 구현을 목표로 합니다.
-
 # 환경 상세
 본 프로젝트에서는 3개의 맵으로 구성된 환경을 자체 구축하여 사용하였습니다.
 ### [환경 크기 및 형태]
@@ -56,3 +51,15 @@ train_example.ipynb # 에이전트 학습 예시
 1. **🗺 지형 맵 :** **벽**(1.0으로 표시, 에이전트가 갈 수 없는 곳)과 **도로**(0.0으로 표시, 에이전트가 갈 수 있는 곳)으로 구성
 2. **🏁 목적지 위치 맵 :** **목적지 위치**(1.0으로 표시, 에이전트가 도달해야 하는 곳)를 나타냄(나머지는 0.0으로 표시)
 3. **🚩 에이전트 위치 맵 :** **에이전트 위치**(1.0으로 표시, 에이전트의 현재 위치한 곳)를 나타냄(나머지는 0.0으로 표시)
+### [맵 예시]
+<p align="center">
+  <img width="486" height="510" alt="Image" src="https://github.com/user-attachments/assets/e02e3f72-492c-41d1-8926-0d03b357adbe"/>
+  <img width="486" height="510" alt="Image" src="https://github.com/user-attachments/assets/9713e96f-efe6-4190-9b6e-30b048345147"/>
+  <img width="486" height="510" alt="Image" src="https://github.com/user-attachments/assets/82abe106-59db-41f4-bc04-0dec79785c4e" />
+  <img width="486" height="510" alt="Image" src="https://github.com/user-attachments/assets/af67db55-d359-4c1a-8876-00a909c27397"/>
+</p>
+
+# 학습 목표
+환경을 구성하는 맵의 크기가 커질수록 계산량 급증으로 인해 모델 학습 속도가 저하되는 것에 착안하여, 전체 지역을 부분 지역으로 분할하고, 해당 부분 지역 내에서의 경로 탐색에 최적화된 에이전트 구현을 목표로 합니다.
+
+# 학습 결과
