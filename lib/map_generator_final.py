@@ -88,8 +88,8 @@ class MapGen:
         if random.randint(0, 1):
             candidate = random.sample(base_row_idx, 2) # 출발지와 목적지가 될 후보군을 선택
         
-            src_x, src_y = candidate[0] + 1, random.randint(0, self.src_dest_avail_scope - 1) # 출발지 좌표(x, y) 선정
-            dest_x, dest_y = candidate[1] + 1, random.randint(dims[1] - self.src_dest_avail_scope, dims[1] - 1)
+            src_x, src_y = candidate[0] + 1, random.randint(0, self.src_dest_avail_scope - 1) # 출발지 위치 좌표(x, y) 선정
+            dest_x, dest_y = candidate[1] + 1, random.randint(dims[1] - self.src_dest_avail_scope, dims[1] - 1) # 목적지 위치 좌표(x, y) 선정
         # 수직 도로 영역에서 출발지와 목적지를 선정하는 경우
         else:
             top_x, top_y = random.randint(0, self.src_dest_avail_scope - 1), random.sample(base_col_idx[0], 1)[0] + 1 # 최상단 수직 도로 영역에서 좌표(x, y) 선정
