@@ -29,7 +29,7 @@ class ReplayMemory:
         self.buffer.clear()
 
 class DQN:
-    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=3000, weight_decay=0.01, max_norm=5.0):
+    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=5000, max_norm=5.0):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.input_size = input_size # 모델 입력 크기
         self.q_net = None # 주 신경망
@@ -54,7 +54,6 @@ class DQN:
             # 손실 함수, 옵티마이저, 그 외 학습 안정성 관련 변수
             self.loss_fn = nn.SmoothL1Loss()
             self.optimizer = None
-            self.weight_decay = weight_decay # L2 Regularization 하이퍼파라미터
             self.scaler = torch.GradScaler(self.device) # AMP 스케일러
             self.max_norm = max_norm # gradient clipping 하이퍼파리미터
 
@@ -142,7 +141,7 @@ class DQN:
 
         return round(loss.item(), 3)
     
-    def train(self, env, checkpoint=None, max_env_creation_cnt=30, max_ep_win_rate_in_env=90, recent=5000, jupyter=True, verbose=True):
+    def train(self, env, checkpoint=None, max_env_creation_cnt=30, max_ep_win_rate_in_env=90, recent=7000, jupyter=True, verbose=True):
         """ DQN 에이전트의 학습을 수행한다 """
         
         env_creation_cnt = 0 # 환경 생성 횟수
@@ -163,7 +162,7 @@ class DQN:
             self.target_net.eval() # 목표 신경망은 학습을 수행하지 않는다
 
             # 옵티마이저 설정
-            self.optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+            self.optimizer = optim.Adam(self.q_net.parameters(), lr=self.lr)
             
             # 학습을 위한 변수들
             cu_ep_step = 0 # 현재 환경에서 수행된 모든 에피소드들의 스텝 누적합(누적 스텝)
