@@ -40,7 +40,6 @@ train_example.ipynb # 에이전트 학습 예시
 - **Epsilon decay**
 - **AMP(Automatic Mixed Precision)**
 - **Gradient clipping**
-- **L2 Regularization**
 
 # 환경 상세
 본 프로젝트에서는 3개의 맵으로 구성된 환경을 자체 구축하여 사용하였습니다.
