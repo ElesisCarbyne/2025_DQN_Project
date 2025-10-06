@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from torchsummary import summary
 
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
@@ -91,5 +90,7 @@ class Agent(nn.Module):
         return self.ffn(result)
 
 if __name__ == "__main__":
+    from torchsummary import summary
+    
     model = Agent(input_size=24)
     summary(model, (3, 24, 24))

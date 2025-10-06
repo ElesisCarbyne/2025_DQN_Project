@@ -117,7 +117,7 @@ class PathFindEnv:
         """ 학습한 환경 복원 """
         
         # 환경 정보 파일 절대 경로 생성
-        env_info_file_abs_path = os.path.join(os.getcwd(), "objs", env_info_file)
+        env_info_file_abs_path = os.path.join(os.getcwd(), "envs", env_info_file)
         
         # 학습했던 환경 복원
         with open(env_info_file_abs_path, "rb") as f:

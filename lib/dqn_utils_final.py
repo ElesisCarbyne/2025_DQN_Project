@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from torchsummary import summary
 import os, random, pickle
 from datetime import date
 from collections import deque
@@ -29,7 +28,7 @@ class ReplayMemory:
         self.buffer.clear()
 
 class DQN:
-    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=5000, max_norm=5.0):
+    def __init__(self, train=True, input_size=24, batch_size=256, gamma=0.99, lr=1e-4, eps_upper=1.0, eps_lower=0.05, eps_rate=10000, buffer_size=50000, update_freq=5000, max_norm=3.0):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.input_size = input_size # 모델 입력 크기
         self.q_net = None # 주 신경망
@@ -67,12 +66,16 @@ class DQN:
         else:
             os.system("clear")
 
+        return
+
     def display(self, env, verbose):
         """ 환경의 현재 상태를 시각화한다 """
         
         if verbose:
             fig, ax = plt.subplots(figsize=(6, 6))
             env.normal_view_render(ax)
+
+        return
         
     def eps_decay(self, ep_cnt_in_env):
         """ 입실론 쇠퇴(decay) 구현 """
@@ -350,7 +353,7 @@ class DQN:
         dates = str(date.today())
         
         # 체크포인트 절대 경로 생성
-        checkpoint_abs_path = os.path.join(os.getcwd(), "checkpoints", f"checkpoint8_{max_env_creation_cnt}_{env_creation_cnt}_{max_ep_win_rate_in_env}_{ep_win_in_env}_{ep_cnt_in_env}_{dates}.pth")
+        checkpoint_abs_path = os.path.join(os.getcwd(), "checkpoints", f"checkpoint8_{max_env_creation_cnt}_{env_creation_cnt:02}_{max_ep_win_rate_in_env}_{ep_win_in_env}_{ep_cnt_in_env}_{dates}.pth")
 
         # 에이전트 체크포인트 저장
         torch.save(self.q_net.state_dict(), checkpoint_abs_path)
@@ -358,7 +361,7 @@ class DQN:
         # 환경 정보를 저장하는 경우
         if env_info is not None:
             # 환경 정보 파일 절대 경로 생성
-            env_info_abs_path = os.path.join(os.getcwd(), "objs", f"env8_{max_env_creation_cnt}_{env_creation_cnt}_{dates}.obj")
+            env_info_abs_path = os.path.join(os.getcwd(), "envs", f"env8_{max_env_creation_cnt}_{env_creation_cnt}_{dates}.obj")
     
             # 환경 정보 파일 저장
             with open(env_info_abs_path, "wb") as f:
