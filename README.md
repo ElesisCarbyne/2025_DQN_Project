@@ -51,7 +51,7 @@ train_example.ipynb # 에이전트 학습 예시
 2. **🏁 목적지 위치 맵 :** **목적지 위치**(1.0으로 표시, 에이전트가 도달해야 하는 곳)를 나타냄(나머지는 0.0으로 표시)
 3. **🚩 에이전트 위치 맵 :** **에이전트 위치**(1.0으로 표시, 에이전트의 현재 위치한 곳)를 나타냄(나머지는 0.0으로 표시)
 ### [맵 예시]
-<p align="center">
+<p align="left">
   <img width="476" height="500" alt="Image" src="https://github.com/user-attachments/assets/e02e3f72-492c-41d1-8926-0d03b357adbe"/>
   <img width="476" height="500" alt="Image" src="https://github.com/user-attachments/assets/9713e96f-efe6-4190-9b6e-30b048345147"/>
   <img width="476" height="500" alt="Image" src="https://github.com/user-attachments/assets/82abe106-59db-41f4-bc04-0dec79785c4e" />
