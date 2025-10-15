@@ -71,3 +71,15 @@ train_example.ipynb # 에이전트 학습 예시
 위 두가지 문제점에서 착안하여 **전체 지역을 부분 지역으로 분할하고, 이들 부분 지역에 대한 부분 지역 경로 탐색 최적화 에이전트의 학습**이 최종 학습 목표입니다.
 
 # 학습 결과
+<table>
+  <tr>
+    <td><img width="450" height="450" alt="Image" src="https://github.com/user-attachments/assets/3fcb6694-a340-40ae-b06c-997e34551388"/></td>
+    <td><img width="450" height="450" alt="Image" src="https://github.com/user-attachments/assets/5d58a6f4-3f9e-4ad5-823d-c1a9fc02d232"/></td>
+  </tr>
+</table>
+<table>
+  <tr>
+    <td><img width="450" height="450" alt="Image" src="https://github.com/user-attachments/assets/df067d03-c617-427c-9fd4-87f9047565e1"/></td>
+    <td><img width="450" height="450" alt="Image" src="https://github.com/user-attachments/assets/c8ff7f93-b923-47c3-8ac7-7afaf17146de"/></td>
+  </tr>
+</table>
