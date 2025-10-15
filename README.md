@@ -54,6 +54,8 @@ train_example.ipynb # 에이전트 학습 예시
 <p align="center">
   <img width="446" height="570" alt="Image" src="https://github.com/user-attachments/assets/e02e3f72-492c-41d1-8926-0d03b357adbe"/>
   <img width="446" height="570" alt="Image" src="https://github.com/user-attachments/assets/9713e96f-efe6-4190-9b6e-30b048345147"/>
+</p>
+<p align="center">
   <img width="446" height="570" alt="Image" src="https://github.com/user-attachments/assets/82abe106-59db-41f4-bc04-0dec79785c4e" />
   <img width="446" height="570" alt="Image" src="https://github.com/user-attachments/assets/af67db55-d359-4c1a-8876-00a909c27397"/>
 </p>
