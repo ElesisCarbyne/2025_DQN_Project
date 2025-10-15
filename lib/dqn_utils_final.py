@@ -68,12 +68,12 @@ class DQN:
 
         return
 
-    def display(self, env, verbose):
+    def display(self, env, verbose, path=None):
         """ 환경의 현재 상태를 시각화한다 """
         
         if verbose:
             fig, ax = plt.subplots(figsize=(6, 6))
-            env.normal_view_render(ax)
+            env.normal_view_render(ax, path)
 
         return
         
@@ -306,7 +306,7 @@ class DQN:
 
             cur_state = next_state # 다음 상태를 현재 상태로 설정
     
-    def inference(self, env, init_state, checkpoint, verbose=False):
+    def inference(self, env, init_state, checkpoint, verbose=False, path=None):
         """ 학습된 에이전트로 특정 환경에서 에피소드를 수행하고 그 결과를 리플레이 형태로 반환한다 """
 
         checkpoint_abs_path, _ = self.load(checkpoint)
@@ -320,7 +320,7 @@ class DQN:
         ep_replay = np.expand_dims(cur_state, axis=0) # 에피소드 내 모든 상태 기록
 
         # 현재 상태 출력
-        self.display(env, verbose)
+        self.display(env, verbose, path+f"-{len(ep_replay)}.png" if path is not None else path)
 
         # 에피소드 수행
         while True:
@@ -330,11 +330,11 @@ class DQN:
                 action = q_values.argmax(dim=1).item()
             next_state, _, terminated, passed, _ = env.step(action, cur_ep_step)
 
-            # 현재 상태 출력
-            self.display(env, verbose)
-
             # 에피소드 진행 과정 기록
             ep_replay = np.concatenate((ep_replay, np.expand_dims(next_state, axis=0)), axis=0)
+
+            # 현재 상태 출력
+            self.display(env, verbose, path+f"-{len(ep_replay)}.png" if path is not None else path)
 
             # 에피소드 종료
             if terminated:

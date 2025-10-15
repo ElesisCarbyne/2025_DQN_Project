@@ -137,7 +137,7 @@ class PathFindEnv:
         
         return self.tp_map, self.src_pos, self.dest_pos
 
-    def normal_view_render(self, ax=None):
+    def normal_view_render(self, ax=None, path=None):
         """ 현재 환경 상태 그래프로 출력 """
         
         maps = self.tp_map[0] + (self.tp_map[1] * 2) + (self.tp_map[2] * 3) # 3개의 map을 하나로 결합
@@ -171,6 +171,10 @@ class PathFindEnv:
                     labelleft=False) # 좌측 레이블 표시를 생략한다
         ax.set_title(f'{maps.shape[0]}x{maps.shape[1]} Transportation Map', fontsize=14)
         plt.tight_layout() # 그림 요소들이 겹치지 않도록 조정
+
+        if path is not None:
+            plt.savefig(path)
+
         plt.show()
 
 if __name__ == "__main__":
