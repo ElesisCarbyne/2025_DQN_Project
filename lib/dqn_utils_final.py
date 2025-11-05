@@ -338,7 +338,8 @@ class DQN:
 
             # 에피소드 종료
             if terminated:
-                print(f"<<< Win >>>") if passed else print(f"<<< Lose >>>")
+                if verbose:
+                    print(f"<<< Win >>>") if passed else print(f"<<< Lose >>>")
                 break
             
             cur_state = next_state # 다음 상태를 현재 상태로 설정
